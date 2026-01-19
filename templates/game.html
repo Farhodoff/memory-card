@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <a href="{% url 'dashboard' %}" class="btn"
+        style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);">
+        ← Orqaga
+    </a>
+    <div style="display: flex; gap: 2rem; font-size: 1.2rem; font-weight: bold;">
+        <div class="glass-panel" style="padding: 0.5rem 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>⭐</span> <span id="score">0</span>
+        </div>
+        <div class="glass-panel" style="padding: 0.5rem 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>⏱️</span> <span id="timer">0</span>s
+        </div>
+    </div>
+</div>
+
+<div class="game-container" id="game-board">
+    <div class="glass-panel" style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+        Yuklanmoqda...
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div id="game-over-modal" class="glass-panel"
+    style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; border: 2px solid var(--primary); box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">O‘yin Tugadi! 🎉</h2>
+    <p style="font-size: 1.2rem;">Sizning natijangiz:</p>
+    <div style="font-size: 3rem; font-weight: 800; color: var(--primary); margin: 1rem 0;">
+        <span id="final-score">0</span> ball
+    </div>
+    <p class="text-muted">Vaqt: <span id="final-time">0</span> soniya</p>
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+        <a href="{% url 'game' %}" class="btn">Qayta o'ynash</a>
+        <a href="{% url 'dashboard' %}" class="btn" style="background: transparent; border: 1px solid white;">Bosh
+            sahifa</a>
+    </div>
+</div>
+<div id="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 90;">
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .game-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        perspective: 1000px;
+    }
+
+    @media (max-width: 600px) {
+        .game-container {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+    }
+
+    .card {
+        background-color: transparent;
+        aspect-ratio: 3/4;
+        cursor: pointer;
+        border-radius: 12px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    .card.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .card.matched {
+        animation: pulse 1s;
+        cursor: default;
+    }
+
+    .card.matched .card-back {
+        border: 2px solid #10b981;
+    }
+
+    .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-front {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-front::after {
+        content: '?';
+        font-size: 3rem;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.2);
+    }
+
+    .card-back {
+        background: #1e293b;
+        transform: rotateY(180deg);
+    }
+
+    .card-back img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: rotateY(180deg) scale(1);
+        }
+
+        50% {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        100% {
+            transform: rotateY(180deg) scale(1);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const board = document.getElementById('game-board');
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let score = 0;
+        let startTime = Date.now();
+        let timerInterval;
+        let isProcessing = false;
+
+        async function initGame() {
+            try {
+                const response = await fetch('/api/cards/');
+                const data = await response.json();
+
+                if (data.cards.length === 0) {
+                    board.innerHTML = '<div class="glass-panel" style="grid-column: 1/-1;">Admin panel orqali kartalarni qo\'shing</div>';
+                    return;
+                }
+
+                cards = data.cards;
+                renderBoard();
+                startTimer();
+            } catch (error) {
+                console.error('Error fetching cards:', error);
+                board.innerHTML = '<div class="glass-panel">Xatolik yuz berdi</div>';
+            }
+        }
+
+        function renderBoard() {
+            board.innerHTML = '';
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.dataset.index = index;
+                cardEl.dataset.id = card.id;
+
+                cardEl.innerHTML = `
+                    <div class="card-face card-front"></div>
+                    <div class="card-face card-back">
+                        <img src="${card.image}" alt="${card.title}">
+                    </div>
+                `;
+
+                cardEl.addEventListener('click', () => flipCard(cardEl));
+                board.appendChild(cardEl);
+            });
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                timerEl.textContent = elapsed;
+            }, 1000);
+        }
+
+        function flipCard(card) {
+            if (isProcessing || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            isProcessing = true;
+            const [card1, card2] = flippedCards;
+            const match = card1.dataset.id === card2.dataset.id;
+
+            if (match) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                score += 10;
+                matchedPairs++;
+
+                // Bonus for speed? (optional)
+
+                scoreEl.textContent = score;
+                flippedCards = [];
+                isProcessing = false;
+
+                if (matchedPairs === cards.length / 2) {
+                    endGame();
+                }
+            } else {
+                score = Math.max(0, score - 1); // Penalty for wrong guess
+                scoreEl.textContent = score;
+
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    isProcessing = false;
+                }, 1000);
+            }
+        }
+
+        async function endGame() {
+            clearInterval(timerInterval);
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-time').textContent = timeTaken;
+            document.getElementById('game-over-modal').style.display = 'block';
+            document.getElementById('modal-overlay').style.display = 'block';
+
+            try {
+                await fetch('/api/save_score/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        score: score,
+                        time_taken: timeTaken
+                    })
+                });
+            } catch (e) {
+                console.error('Error saving score', e);
+            }
+        }
+
+        initGame();
+    });
+</script>
+{% endblock %}

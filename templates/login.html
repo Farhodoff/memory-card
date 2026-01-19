@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 400px; margin: 4rem auto;">
+    <h1 class="text-center mb-8">Kirish</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <small style="color: #ef4444;">{{ field.errors.0 }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn" style="width: 100%">Tizimga kirish</button>
+    </form>
+    <p class="text-center mt-4" style="color: var(--text-muted);">
+        Hisobingiz yo‘qmi? <a href="{% url 'register' %}">Ro‘yxatdan o‘tish</a>
+    </p>
+</div>
+{% endblock %}

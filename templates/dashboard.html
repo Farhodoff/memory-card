@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2
+        style="background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+        🎮 Memory Game</h2>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <span>Salom, <b>{{ username }}</b></span>
+        <a href="{% url 'logout' %}"
+            style="padding: 0.5rem 1rem; border: 1px solid #ef4444; color: #ef4444; border-radius: 8px; transition: all 0.2s;">Chiqish</a>
+    </div>
+</nav>
+
+<div class="glass-panel text-center mb-8" style="animation: fadeIn 0.5s ease-out;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">Xotirani Charxlang</h1>
+    <p style="color: var(--text-muted); font-size: 1.2rem; margin-bottom: 2rem;">
+        Kartalarni juftlang va reytingda yuqoriga ko‘tarilying.
+    </p>
+    <a href="{% url 'game' %}" class="btn" style="font-size: 1.2rem; padding: 1rem 3rem;">O‘yinni Boshlash</a>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem;">📊 Mening Natijalarim</h3>
+        {% if best_score %}
+        <div
+            style="background: rgba(99, 102, 241, 0.1); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: center;">
+            <p
+                style="margin:0; font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                Eng Yaxshi Natija</p>
+            <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin: 0.5rem 0;">{{
+                best_score.score }}</div>
+            <small style="color: var(--text-muted);">Vaqt: {{ best_score.time_taken }} sekund</small>
+        </div>
+        <ul style="list-style: none; padding: 0;">
+            {% for score in scores %}
+            <li
+                style="padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--text-muted); font-size: 0.9rem;">{{ score.timestamp|date:"d.m.Y H:i" }}</span>
+                <span style="font-weight: 600;">{{ score.score }} ball</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            <p>Hali o‘yin o‘ynamagansiz.</p>
+            <p>Natijalarni ko‘rish uchun birinchi o‘yinni o‘ynang!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="glass-panel">
+        <h3 style="margin-bottom: 1.5rem;">🏆 Yetakchilar</h3>
+        <ul style="list-style: none; padding: 0;">
+            {% for entry in leaderboard %}
+            <li
+                style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin-bottom: 0.5rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span class="rank-number rank-{{ forloop.counter }}">
+                        {{ forloop.counter }}
+                    </span>
+                    <span style="font-weight: 600;">{{ entry.user.username }}</span>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 700; color: var(--primary);">{{ entry.score }}</div>
+                    <small style="font-size: 0.75rem; color: var(--text-muted);">{{ entry.time_taken }}s</small>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rank-number {
+        font-size: 0.9rem;
+        font-weight: 800;
+        width: 20px;
+        color: var(--text-muted);
+    }
+
+    .rank-1 {
+        color: #fbbf24;
+    }
+
+    .rank-2 {
+        color: #94a3b8;
+    }
+
+    .rank-3 {
+        color: #b45309;
+    }
+</style>
+{% endblock %}
