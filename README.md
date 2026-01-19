@@ -1,45 +1,45 @@
 # Memory Card Game (Django)
 
-Ushbu loyiha Django framework yordamida yaratilgan "Xotira o'yini" (Memory Card Game).
-Foydalanuvchilar ro'yxatdan o'tib, kartalarni juftlash orqali o'z xotiralarini sinab ko'rishlari va natijalarini saqlashlari mumkin.
+This project is a "Memory Card Game" built using the Django framework.
+Users can sign up, test their memory by matching pairs of cards, and save their scores.
 
-## Xususiyatlar
-- 🔐 **Auth Tizimi**: Ro'yxatdan o'tish va kirish (Login/Register).
-- 🃏 **Karta Modeli**: Ma'lumotlar bazasidan olinadigan rasmli kartalar.
-- 🧩 **O'yin Jarayoni**: Vaqt va ball hisoblash tizimi.
-- 📊 **Dashboard**: Foydalanuvchi statistikasi va yetakchilar ro'yxati (Leaderboard).
-- 🎨 **Dizayn**: Zamonaviy "Glassmorphism" uslubidagi UI (Vanilla CSS).
+## Features
+- 🔐 **Auth System**: User Registration and Login.
+- 🃏 **Card Model**: Image-based cards fetched from the database.
+- 🧩 **Gameplay**: Timer and scoring system.
+- 📊 **Dashboard**: User statistics and Leaderboard.
+- 🎨 **Design**: Modern "Glassmorphism" UI (Vanilla CSS).
 
-## O'rnatish va Ishga Tushirish
+## Installation and Setup
 
-1. **Talablar**: Python o'rnatilgan bo'lishi kerak.
-2. **Kutubxonalarni o'rnatish**:
+1. **Requirements**: Python must be installed.
+2. **Install Dependencies**:
    ```bash
    pip install django pillow
    ```
-3. **Migration (Ma'lumotlar bazasini yaratish)**:
+3. **Migrations (Create Database)**:
    ```bash
    python3 manage.py migrate
    ```
-4. **Boshlang'ich ma'lumotlarni yuklash** (Admin va Kartalar):
+4. **Load Initial Data** (Admin and Cards):
    ```bash
    python3 init_game_data.py
    ```
-5. **Loyihani ishga tushirish**:
+5. **Run the Project**:
    ```bash
    python3 manage.py runserver
    ```
 
-## Foydalanish
+## Usage
 
-- Brauzerda `http://127.0.0.1:8000/` manziliga kiring.
+- Open `http://127.0.0.1:8000/` in your browser.
 - **Login**: 
   - Username: `admin`
   - Password: `1`
-  - Yoki yangi akkaunt oching ("Ro'yxatdan o'tish").
-- **Admin Panel**: `http://127.0.0.1:8000/admin/` (Yangi kartalar qo'shish uchun).
+  - Or create a new account ("Register").
+- **Admin Panel**: `http://127.0.0.1:8000/admin/` (To add new cards).
 
-## Texnologiyalar
+## Technologies
 - **Backend**: Django (Python)
 - **Frontend**: HTML5, CSS3, JavaScript
 - **Database**: SQLite
